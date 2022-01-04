@@ -1,0 +1,72 @@
+version: '3.6'
+services:
+  angular:
+    build:
+      context: .
+      dockerfile: Dockerfile-angular
+      target: development
+    ports:
+      - "4200:4200"
+    environment:
+      - PORT=4200
+    volumes:
+      - .:/usr/src/app
+
+#cypress-browser creates a container with only the cypress package.  Run docker commands against the container to perform actions
+  cypress-browser:
+    build:
+      context: .
+      dockerfile: Dockerfile-cypress-browsers
+    volumes:
+      - ./cypress/videos:/usr/src/app/cypress/videos
+      - ./cypress/reports:/usr/src/app/cypress/reports
+    depends_on:
+      - angular
+    network_mode: 'host'
+
+#cypress-included creates a container from a custom image which extends included.  This is used to extend the included
+# image for adding additiional packages (such as mochawesome and reporter)
+  cypress-included:
+    build:
+      context: .
+      dockerfile: Dockerfile-cypress-included
+    volumes:
+      - ./cypress:/usr/src/app/cypress
+      - ./cypress/videos:/usr/src/app/cypress/videos
+      - ./cypress/reports:/usr/src/app/cypress/reports
+    environment:
+      - CYPRESS_baseUrl=http://localhost:4200
+    depends_on:
+      - angular
+    network_mode: 'host'
+  # The folowing containers are browser specific if you choose to follow that pattern (rather than the cypress-included container)
+  # These containers run npm commands for their respective browsers
+  # One advantage of this setup would be to run tests in the different browsers in parallel since each is in a separate container
+
+  # this container will run Cypress test using built-in Electron browser
+  # e2e-electron:
+  #   image: "cyp-dock-mocha-report"
+  #   command: "test"
+  #   volumes:
+  #     - ./cypress/videos:/cypress-docker/cypress/videos
+  #     - ./cypress/reports:/cypress-docker/cypress/reports
+
+  # # this container will run Cypress test using Chrome browser
+  # e2e-chrome:
+  #   image: "cypress-included"
+  #   command: "chrome:test"
+  #   volumes:
+  #     - ./cypress/videos:/cypress-docker/cypress/videos
+  #     - ./cypress/reports:/cypress-docker/cypress/reports
+
+  # # this container will run Cypress test using Firefox browser
+  # # note that both Chrome and Firefox browsers were pre-installed in the Docker image
+  # e2e-firefox:
+  #   image: "cypress-included"
+  #   command: "firefox:test"
+  #   # if you want to debug FF run, pass DEBUG variable like
+  #   environment:
+  #     - DEBUG=cypress:server:browsers:firefox-util,cypress:server:util:process_profiler
+  #   volumes:
+  #     - ./cypress/videos:/cypress-docker/cypress/videos
+  #     - ./cypress/reports:/cypress-docker/cypress/reports
