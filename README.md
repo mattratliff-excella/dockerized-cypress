@@ -2,8 +2,6 @@
 
 This project was created as a proof-of-concept for dockerizing an Angular app with Cypress
 
-## There are 3 different Dockerfiles... one for each way to use Docker with Cypress
-
 # Installation
 
 Build the images and spin up the containers:
