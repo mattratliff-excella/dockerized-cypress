@@ -1,4 +1,4 @@
-# UomCypress
+# Dockerized Angular/Cypress
 
 This project was created as a proof-of-concept for dockerizing an Angular app with Cypress
 
